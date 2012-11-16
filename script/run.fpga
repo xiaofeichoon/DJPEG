@@ -1,0 +1,49 @@
+#!/bin/csh
+
+if($#argv == 0) then
+  echo Usage: run.fpga IMAGENAME
+  exit
+endif
+
+../c_model/convbtoh ../image/$argv[1].jpg test.mem 
+
+if(-d ./work) rm -rf work
+
+vlib work
+vlog \
+-y $XILINX/verilog/src/simprims \
+$XILINX/verilog/src/glbl.v \
++libext+.v \
+jpeg_decode.v \
+jpeg_test.v
+
+#vsim -L simprims_ver testfixture glbl
+#echo "vsim -coverage -t 1ps -lib work jpeg_test" > modelsim.fdo
+echo "vsim -t 1ps -lib work -L simprims_ver glbl jpeg_test" > modelsim.fdo
+#echo "view wave" >> modelsim.fdo
+#echo "do wave.do" >> modelsim.fdo
+#echo "vcd file vcd/jpeg_test.vcd" >> modelsim.fdo
+#echo "vcd add -r *" >> modelsim.fdo
+echo "run 50 ms" >> modelsim.fdo
+#echo "run -all" >> modelsim.fdo
+#echo "coverage report -file report.txt -byfile -select {s b c}" >> modelsim.fdo
+#echo "coverage save cov_"$argv[1]".cov" >> modelsim.fdo
+echo "quit" >> modelsim.fdo
+
+vsim -c -do modelsim.fdo
+#vsim -do modelsim.fdo
+
+#echo "coverage report -file report.txt -byfile -select {s b c}" > modelsim.fdo
+#echo "coverage save cov_"$argv[1]".cov" >> modelsim.fdo
+#echo "quit" >> modelsim.fdo
+#vsim -c -do modelsim.fdo
+
+#vcover merge all.cov cov_*.cov
+#vcover report -file report.txt all.cov
+
+../c_model/convsim sim.dat sim.bmp 
+mv sim.bmp out_$argv[1].bmp
+
+rm -rf ./work
+rm transcript
+rm modelsim.fdo

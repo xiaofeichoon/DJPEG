@@ -1,0 +1,39 @@
+set_global_assignment -name FAMILY "Stratix II"
+set_global_assignment -name DEVICE EP2S180F1020C3
+set_global_assignment -name TOP_LEVEL_ENTITY djpeg_fpga
+set_global_assignment -name LAST_QUARTUS_VERSION 7.0
+set_global_assignment -name STRATIXII_OPTIMIZATION_TECHNIQUE BALANCED
+set_global_assignment -name STRATIXII_CONFIGURATION_SCHEME "ACTIVE SERIAL"
+set_global_assignment -name STRATIXII_CONFIGURATION_DEVICE EPCS64
+set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD LVCMOS
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name ENABLE_ADVANCED_IO_TIMING OFF
+set_global_assignment -name USE_TIMEQUEST_TIMING_ANALYZER ON
+set_instance_assignment -name PARTITION_HIERARCHY no_file_for_top_partition -to | -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name ENABLE_SIGNALTAP ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING OFF
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP OFF
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING OFF
+
+set_global_assignment -name VERILOG_FILE ../src/jpeg_decode.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_decode_fsm.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_dht.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_dqt.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_huffman.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_hm_decode.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_idct.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_idctb.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_idct_calc.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_regdata.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_ycbcr.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_ycbcr2rgb.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_ycbcr_mem.v
+set_global_assignment -name VERILOG_FILE ../src/jpeg_ziguzagu.v
+set_global_assignment -name SDC_FILE djpeg_fpga.sdc
