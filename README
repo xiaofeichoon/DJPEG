@@ -1,0 +1,21 @@
+AQ_DJPEG
+
+●シミュレーション
+% cd ./sim
+% cp ../testdata/test.mem .
+% ../script/tb_aq_djprg.bat
+
+シミュレーション用元画像データの作成方法
+% ./convbtoh test.img test.mem
+
+シミュレーション後のデコードデータの復元方法
+% ./convsim sim.dat sim.bmp
+
+●インプリメント
+% cd ./imp
+% ../script/compile.bat
+
+動作確認環境
+ - Windows 7(64bit)
+ - Xilinx ISE 13.1
+ - MinGW
