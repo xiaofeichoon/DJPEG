@@ -84,21 +84,29 @@ module aq_djpeg_regdata(
     reg             CheckMode;
     reg             DataEnd;
 
-    assign RegValid     = (ImageEnable)?(RegWidth > 7'd64):(RegWidth > 7'd32);
+	wire			PreImageEnable;
+	reg				ImageReady;
+
+//    assign RegValid     = (ImageEnable)?(RegWidth > 7'd64):(RegWidth > 7'd32);
+    assign RegValid     = (ImageReady)?(RegWidth > 7'd64):(RegWidth > 7'd32);
     assign DataInRead   = ((RegValid == 1'b0) & (DataInEnable == 1'b1) & (DataEnd == 1'b0));
+    
+    assign PreImageEnable	= ((ImageEnable == 1'b1) && (ImageReady == 1'b0))?1'b1:1'b0;
 
     always @(posedge clk or negedge rst) begin
         if(!rst) begin
             RegData   <= 96'd0;
             RegWidth  <= 7'd0;
             CheckMode <= 1'b0;
+            ImageReady	<= 1'b0;
         end else begin
             if(DataEnd == 1'b1 & ProcessIdle == 1'b1) begin
                 RegData   <= 96'd0;
                 RegWidth  <= 7'd0;
                 CheckMode <= 1'b0;
+				ImageReady	<= 1'b0;
             end else if(RegValid == 1'b0 & (DataInEnable == 1'b1 | DataEnd == 1'b1)) begin
-                if(ImageEnable == 1'b1) begin
+                if(ImageReady == 1'b1) begin
                     if(RegData[39: 8] == 32'hFF00FF00 & CheckMode != 1'b1) begin
                         RegWidth        <= RegWidth + 7'd16;
                         RegData[95:64]  <= {8'h00,RegData[71:48]};
@@ -147,6 +155,28 @@ module aq_djpeg_regdata(
                     CheckMode       <= 1'b0;
                 end
                 RegData[31: 0] <= {DataIn[7:0],DataIn[15:8],DataIn[23:16],DataIn[31:24]};
+            end else if(PreImageEnable == 1'b1) begin
+				if((RegData[63:32] == 32'hFF00FF00) && (RegWidth == 7'd64)) begin
+                    RegWidth        <= 7'd48;
+					RegData[63:32]	<= {32'h0000FFFF};
+					CheckMode		<= 1'b1;
+					ImageReady		<= 1'b1;
+				end else if ((RegData[63:48] == 16'hFF00) && (RegWidth == 7'd64)) begin
+                    RegWidth        <= 7'd56;
+					RegData[63:32]	<= {16'h00FF, RegData[47:32]};
+					CheckMode		<= 1'b0;
+					ImageReady		<= 1'b1;
+				end else if ((RegData[55:40] == 16'hFF00) && (RegWidth == 7'd56)) begin
+                    RegWidth        <= 7'd48;
+					RegData[63:32]	<= {24'h0000FF, RegData[39:32]};
+					CheckMode		<= 1'b0;
+					ImageReady		<= 1'b1;
+				end else if ((RegData[47:32] == 16'hFF00) && (RegWidth == 7'd64)) begin
+                    RegWidth        <= 7'd48;
+					RegData[63:32]	<= {32'h000000FF};
+					CheckMode		<= 1'b1;
+					ImageReady		<= 1'b1;
+				end
             end else if(UseBit == 1'b1) begin
                 RegWidth <= RegWidth - UseWidth;
             end else if(UseByte == 1'b1) begin
