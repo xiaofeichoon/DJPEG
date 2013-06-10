@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef long LONG;
+typedef unsigned int DWORD;
+typedef int LONG;
 
 typedef struct tagBITMAPINFOHEADER{
   DWORD  biSize;

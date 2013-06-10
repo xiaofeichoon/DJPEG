@@ -32,6 +32,9 @@ unsigned int NextData;      // 伸長に使うデータ
 
 unsigned int PreData[3]; // DC成分用の貯めバッファ
 
+unsigned char CompGray;  // グレースケールなら1
+unsigned char CompNum[3];  // コンポーネントのDQTテーブル番号
+
 // ジグザグテーブル
 int zigzag_table[]={
      0, 1, 8, 16,9, 2, 3,10,
@@ -46,8 +49,10 @@ int zigzag_table[]={
 };
 
 typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef long LONG;
+//typedef unsigned long DWORD;
+//typedef long LONG;
+typedef unsigned int DWORD;
+typedef int LONG;
 
 typedef struct tagBITMAPFILEHEADER {
   WORD    bfType;
@@ -213,10 +218,10 @@ void GetDQT(unsigned char *buff){
   data = get_word(buff);
   str = get_byte(buff); // テーブル番号
   
-  //printf("*** DQT Table %d\n",str);
+  printf("*** DQT Table %d\n",str);
   for(i=0;i<64;i++){
     TableDQT[str][i] = get_byte(buff);
-    //printf(" %2d: %2x\n",i,TableDQT[str][i]);
+    printf(" %2d: %2x\n",i,TableDQT[str][i]);
   }
 }
 
@@ -235,27 +240,31 @@ void GetDHT(unsigned char *buff){
 
   switch(str){
   case 0x00:
+    // Y直流成分
     tablenum = 0x00;
     break;
   case 0x10:
+    // Y交流成分
     tablenum = 0x01;
     break;
   case 0x01:
+    // CbCr直流成分
     tablenum = 0x02;
     break;
   case 0x11:
+    // CbCr交流成分
     tablenum = 0x03;
     break;
   }
 
-  //printf("*** DHT Table/Number %d\n",tablenum);
+  printf("*** DHT Table/Number %d\n",tablenum);
   // テーブルを作成する
   max = 0;
   for(i=0;i<16;i++){
     count = get_byte(buff);
     TableHT[tablenum][i] = HuffmanData;
     TableHN[tablenum][i] = max;
-    //printf(" %2d: %4x,%2x\n",i,TableHT[tablenum][i],TableHN[tablenum][i]);
+    printf(" %2d: %4x,%2x\n",i,TableHT[tablenum][i],TableHN[tablenum][i]);
     max = max + count;
     while(!(count==0)){
       HuffmanData += ShiftData;
@@ -264,10 +273,10 @@ void GetDHT(unsigned char *buff){
     ShiftData = ShiftData >> 1; // 右に1bitシフトする
   }
 
-  //printf("*** DHT Table %d\n",tablenum);
+  printf("*** DHT Table %d\n",tablenum);
   for(i=0;i<max;i++){
     TableDHT[tablenum][i] = get_byte(buff);
-    //printf(" %2d: %2x\n",i,TableDHT[tablenum][i]);
+    printf(" %2d: %2x\n",i,TableDHT[tablenum][i]);
   }
 }
 
@@ -284,10 +293,19 @@ void GetSOF(unsigned char *buff){
   BuffY = get_word(buff); // 画像の横サイズ
   BuffX = get_word(buff); // 画像の縦サイズ
   count = get_byte(buff); // データのコンポーネント数
+  switch(count){
+    1: CompGray = 1; break;  // グレースケール
+    3: CompGray = 0; break;  // YCbYr or YIQ
+    default: CompGray = 0; break;
+  }
+  printf(" CompNum: %d\n", count);
   for(i=0;i<count;i++){
     str = get_byte(buff); // コンポーネント番号
+    printf(" Comp[%d]: %02X\n", i, str);
     str = get_byte(buff); // サンプリング比率
+    printf(" Sample[%d]: %02X\n", i, str);
     str = get_byte(buff); // DQTテーブル番号
+    printf(" DQT[%d]: %02X\n", i, str);
   }
 
   // MCUのサイズを算出する
@@ -297,7 +315,7 @@ void GetSOF(unsigned char *buff){
   if(BuffY % 16 >0) BuffBlockY++;
   Buff = (unsigned char*)malloc(BuffBlockY*16*BuffBlockX*16*3);
 
-  //printf(" size : %d x %d,(%d x %d)\n",BuffX,BuffY,BuffBlockX,BuffBlockY);
+  printf(" size : %d x %d,(%d x %d)\n",BuffX,BuffY,BuffBlockX,BuffBlockY);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -312,7 +330,9 @@ void GetSOS(unsigned char *buff){
   count = get_byte(buff);
   for(i=0;i<count;i++){
     str = get_byte(buff);
+    printf(" CompNum[%d]: %02X\n", i, str);
     str = get_byte(buff);
+    printf(" CompDHT[%d]: %02X\n", i, str);
   }
   str = get_byte(buff);
   str = get_byte(buff);
@@ -363,14 +383,14 @@ void HuffmanDecode(unsigned char *buff, unsigned char table, int *BlockData){
     }else{
       BitData = LineData;
     }
-    //printf(" Haffuman BitData(%2d,%2d): %8x\n",table,count,BitData);
+    printf(" Haffuman BitData(%2d,%2d): %8x\n",table,count,BitData);
 
     // 使用するテーブルのセレクト
     if(count ==0) tablen = tabledc; else tablen = tableac;
     code = (unsigned short)(BitData >> 16); // コードは16ビット使用する
     // ハフマンコードがどのビット数にいるか割り出す
     for(i=0;i<16;i++) {
-      //printf(" Haff hit(%2d:%2d): %8x,%8x\n",table,i,TableHT[tablen][i],code);
+      printf(" Haff hit(%2d:%2d): %8x,%8x\n",table,i,TableHT[tablen][i],code);
       if(TableHT[tablen][i]>code) break;
     }
     i--;
@@ -378,16 +398,16 @@ void HuffmanDecode(unsigned char *buff, unsigned char table, int *BlockData){
     code    = (unsigned short)(code >> (15 - i)); // コードの下位を揃える
     huffman = (unsigned short)(TableHT[tablen][i] >> (15 - i));
 
-    //printf(" PreUse Dht Number(%2d): %8x,%8x,%8x\n",i,code,huffman,TableHN[tablen][i]);
+    printf(" PreUse Dht Number(%2d): %8x,%8x,%8x\n",i,code,huffman,TableHN[tablen][i]);
 
     // ハフマンテーブルの場所を算出する
     code = code - huffman + TableHN[tablen][i];
 
-    //printf(" Use Dht Number: %8x\n",code);
+    printf(" Use Dht Number: %8x\n",code);
 
     ZeroCount = (TableDHT[tablen][code] >> 4) & 0x0F; // ゼロレングスの個数
     DataCount = (TableDHT[tablen][code]) & 0x0F;      // 続くデータのビット長
-    //printf(" Dht Table: %8x,%8x\n",ZeroCount,DataCount);
+    printf(" Dht Table: %8x,%8x\n",ZeroCount,DataCount);
     // ハフマンコードを抜き、続くデータを取得する
     DataCode  = (BitData << (i + 1)) >> (16 + (16 - DataCount));
     // 先頭ビットが"0"であれば負のデータ、上位ビットに１を立てて、１を足す
@@ -397,7 +417,7 @@ void HuffmanDecode(unsigned char *buff, unsigned char table, int *BlockData){
       DataCode += 1;
     }
 
-    //printf(" Use Bit: %d\n",(i + DataCount +1));
+    printf(" Use Bit: %d\n",(i + DataCount +1));
     BitCount += (i + DataCount +1); // 使用したビット数を加算する
 
     if(count ==0){
@@ -608,27 +628,27 @@ void Decode411(unsigned char *buff, int *BlockY, int *BlockCb, int *BlockCr){
   unsigned int i;
 
   // 輝度(左上)
-  //printf("Block:00\n");
+  printf("Block:00\n");
   HuffmanDecode(buff,0x00,BlockHuffman);
   DctDecode(BlockHuffman,BlockYLT);
   // 輝度(右上)
-  //printf("Block:02\n");
+  printf("Block:01\n");
   HuffmanDecode(buff,0x00,BlockHuffman);
   DctDecode(BlockHuffman,BlockYRT);
   // 輝度(左下)
-  //printf("Block:03\n");
+  printf("Block:02\n");
   HuffmanDecode(buff,0x00,BlockHuffman);
   DctDecode(BlockHuffman,BlockYLB);
   // 輝度(右下)
-  //printf("Block:04\n");
+  printf("Block:03\n");
   HuffmanDecode(buff,0x00,BlockHuffman);
   DctDecode(BlockHuffman,BlockYRB);
   // 青色差
-  //printf("Block:10\n");
+  printf("Block:10\n");
   HuffmanDecode(buff,0x01,BlockHuffman);
   DctDecode(BlockHuffman,BlockCb);
   // 赤色差
-  //printf("Block:11\n");
+  printf("Block:11\n");
   HuffmanDecode(buff,0x02,BlockHuffman);
   DctDecode(BlockHuffman,BlockCr);
   
@@ -647,7 +667,7 @@ void DecodeYUV(int *y, int *cb, int *cr, unsigned char *rgb){
   int r,g,b;
   int p,i;
 
-  //printf("----RGB----\n");
+  printf("----RGB----\n");
   for(i=0;i<256;i++){
     p = ((int)(i/32) * 8) + ((int)((i % 16)/2));
     r = 128 + y[i] + cr[p]*1.402;
@@ -685,10 +705,10 @@ void Decode(unsigned char *buff,unsigned char *rgb){
           Buff[p+0] = rgb[i*3+0];
           Buff[p+1] = rgb[i*3+1];
           Buff[p+2] = rgb[i*3+2];
-          /*
+          
           printf("RGB[%4d,%4d]: %2x,%2x,%2x\n",x*16+(i%16),y*16+i/16,
                  rgb[i*3+2],rgb[i*3+1],rgb[i*3+0]);
-          */    
+              
         }
       }
     }
@@ -707,20 +727,26 @@ void JpegDecode(unsigned char *buff){
       data = get_word(buff);
       switch(data){
       case 0xFFD8: // SOI
+		printf("Header: SOI\n");
         break;
       case 0xFFE0: // APP0
+		printf("Header: APP0\n");
         GetAPP0(buff);
         break;
       case 0xFFDB: // DQT
+		printf("Header: DQT\n");
         GetDQT(buff);
         break;
       case 0xFFC4: // DHT
+		printf("Header: DHT\n");
         GetDHT(buff);
         break;
       case 0xFFC0: // SOF
+		printf("Header: SOF\n");
         GetSOF(buff);
         break;
       case 0xFFDA: // SOS
+		printf("Header: SOS\n");
         GetSOS(buff);
         Image = 1;
         // データの準備
@@ -732,9 +758,11 @@ void JpegDecode(unsigned char *buff){
         BitCount =0;
         break;
       case 0xFFD9: // EOI
+		printf("Header: EOI\n");
         break;
       default:
         // 判別できないヘッダーは読み飛ばす
+		printf("Header: other(%X)\n", data);
         if((data & 0xFF00) == 0xFF00 && !(data == 0xFF00)){
           data = get_word(buff);
           for(i=0;i<data-2;i++){
@@ -745,6 +773,7 @@ void JpegDecode(unsigned char *buff){
       }
     }else{
       // 伸長(SOSが来ている)
+      printf("/****Image****/\n");
       Decode(buff,RGB);
     }
   }
@@ -757,6 +786,19 @@ int main(int argc, char* argv[])
 {
   unsigned char *buff;
   FILE *fp;
+
+//
+printf( " sizeof(char):           %02d\n", sizeof( char ) );
+printf( " sizeof(unsigned char):  %02d\n", sizeof( unsigned char ) );
+printf( " sizeof(short):          %02d\n", sizeof( short ) );
+printf( " sizeof(unsigned short): %02d\n", sizeof( unsigned short ) );
+printf( " sizeof(int):            %02d\n", sizeof( int ) );
+printf( " sizeof(unsigned int):   %02d\n", sizeof( unsigned int ) );
+printf( " sizeof(long):           %02d\n", sizeof( long ) );
+printf( " sizeof(unsigned long):  %02d\n", sizeof( unsigned long ) );
+
+printf( " sizeof:                 %02d\n", sizeof( BITMAPFILEHEADER ) );
+printf( " sizeof:                 %02d\n", sizeof( BITMAPINFOHEADER ) );
 
   if((fp = fopen(argv[1],"rb")) == NULL){
     perror(0);
