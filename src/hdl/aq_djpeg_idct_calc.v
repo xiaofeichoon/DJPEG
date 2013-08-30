@@ -1,64 +1,32 @@
 /*
-* PROJECT: AQUAXIS JPEG DECODER
-* ----------------------------------------------------------------------
-*
 * aq_djpeg_idct_calc.v
-* Copyright (C)2006-2011 H.Ishihara
+* Copyright (C)2006-2013 H.Ishihara
 *
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* License: The Open Software License 3.0
+* License URI: http://www.opensource.org/licenses/OSL-3.0
 *
 * For further information please contact.
 *   http://www.aquaxis.com/
 *   info(at)aquaxis.com or hidemi(at)sweetcafe.jp
-*
-* 1.01 2006/09/01 1st Release
-* 2.00 2008/03/05 Modify Input Data Sequence
 */
 `timescale 1ps / 1ps
 
 module aq_djpeg_idct_calc(
-    rst,
-    clk,
+    input           clk,
+    input           rst,
 
-    DataInEnable,
-    DataInRead,
-    DataInAddress,
-    DataInA,
-    DataInB,
+    input           DataInEnable,
+    output          DataInRead,
+    output [4:0]    DataInAddress,
+    input [15:0]    DataInA,
+    input [15:0]    DataInB,
 
-    DataOutEnable,
-    DataOutPage,
-    DataOutCount,
-    Data0Out,
-    Data1Out
+    output          DataOutEnable,
+    output [2:0]    DataOutPage,
+    output [1:0]    DataOutCount,
+    output [31:0]   Data0Out,
+    output [31:0]   Data1Out
 );
-
-    input           clk;
-    input           rst;
-
-    input           DataInEnable;
-    output          DataInRead;
-    output [4:0]    DataInAddress;
-    input [15:0]    DataInA;
-    input [15:0]    DataInB;
-
-    output          DataOutEnable;
-    output [2:0]    DataOutPage;
-    output [1:0]    DataOutCount;
-    output [31:0]   Data0Out;
-    output [31:0]   Data1Out;
-
     //-------------------------------------------------------------------------
     // Phase1
     //-------------------------------------------------------------------------

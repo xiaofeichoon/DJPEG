@@ -1,70 +1,35 @@
 /*
-* PROJECT: AQUAXIS JPEG DECODER
-* ----------------------------------------------------------------------
-*
 * aq_djpeg_idctb.b
-* Copyright (C)2006-2011 H.Ishihara
+* Copyright (C)2006-2013 H.Ishihara
 *
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* License: The Open Software License 3.0
+* License URI: http://www.opensource.org/licenses/OSL-3.0
 *
 * For further information please contact.
 *   http://www.aquaxis.com/
 *   info(at)aquaxis.com or hidemi(at)sweetcafe.jp
-*
-* 1.01 2006/10/01 1st Release
-* 2.00 2008/03/19 Replace to RAM from D-FF
 */
 `timescale 1ps / 1ps
 
 module aq_djpeg_idctb(
-    rst,
-    clk,
+    input           clk,
+    input           rst,
 
-    DataInit,
+    input           DataInit,
 
-    DataInEnable,
-    DataInPage,
-    DataInCount,
-    DataInIdle,
-    DataInA,
-    DataInB,
+    input           DataInEnable,
+    input [2:0]     DataInPage,
+    input [1:0]     DataInCount,
+    output          DataInIdle,
+    input [15:0]    DataInA,
+    input [15:0]    DataInB,
 
-    DataOutEnable,
-    DataOutRead,
-    DataOutAddress,
-    DataOutA,
-    DataOutB
+    output          DataOutEnable,
+    input           DataOutRead,
+    input [4:0]     DataOutAddress,
+    output [15:0]   DataOutA,
+    output [15:0]   DataOutB
 );
-
-    input           clk;
-    input           rst;
-
-    input           DataInit;
-
-    input           DataInEnable;
-    input [2:0]     DataInPage;
-    input [1:0]     DataInCount;
-    output          DataInIdle;
-    input [15:0]    DataInA;
-    input [15:0]    DataInB;
-
-    output          DataOutEnable;
-    input           DataOutRead;
-    input [4:0]     DataOutAddress;
-    output [15:0]   DataOutA;
-    output [15:0]   DataOutB;
-
     wire [4:0]      DataInAddress;
     reg [1:0]       WriteBank, ReadBank;
 

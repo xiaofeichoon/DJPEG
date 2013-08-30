@@ -1,72 +1,36 @@
 /*
-* PROJECT: AQUAXIS JPEG DECODER
-* ----------------------------------------------------------------------
-*
 * aq_djpeg_zigizagu.v
-* Copyright (C)2006-2011 H.Ishihara
+* Copyright (C)2006-2013 H.Ishihara
 *
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* License: The Open Software License 3.0
+* License URI: http://www.opensource.org/licenses/OSL-3.0
 *
 * For further information please contact.
 *   http://www.aquaxis.com/
 *   info(at)aquaxis.com or hidemi(at)sweetcafe.jp
-*
-* 1.01 2006/10/01 1st Release
-* 2.00 2008/03/05 Replace to Memory from D-FFs.
 */
 `timescale 1ps / 1ps
 
 module aq_djpeg_ziguzagu(
-    rst,
-    clk,
+    input           clk,
+    input           rst,
 
-    DataInit,
-    HuffmanEndEnable,
+    input           DataInit,
+    input           HuffmanEndEnable,
 
-    DataInEnable,
-    DataInAddress,
-    DataInColor,
-    DataInIdle,
-    DataIn,
+    input           DataInEnable,
+    input [5:0]     DataInAddress,
+    input [2:0]     DataInColor,
+    output          DataInIdle,
+    input [15:0]    DataIn,
 
-    DataOutEnable,
-    DataOutRead,
-    DataOutAddress,
-    DataOutColor,
-    DataOutA,
-    DataOutB
+    output          DataOutEnable,
+    input           DataOutRead,
+    input [4:0]     DataOutAddress,
+    output [2:0]    DataOutColor,
+    output [15:0]   DataOutA,
+    output [15:0]   DataOutB
 );
-
-    input           clk;
-    input           rst;
-
-    input           DataInit;
-    input           HuffmanEndEnable;
-
-    input           DataInEnable;
-    input [5:0]     DataInAddress;
-    input [2:0]     DataInColor;
-    output          DataInIdle;
-    input [15:0]    DataIn;
-
-    output          DataOutEnable;
-    input           DataOutRead;
-    input [4:0]     DataOutAddress;
-    output [2:0]    DataOutColor;
-    output [15:0]   DataOutA;
-    output [15:0]   DataOutB;
-
     // State Machine Parameter
     parameter S_IDLE    = 2'd0;
     parameter S_VALID   = 2'd1;

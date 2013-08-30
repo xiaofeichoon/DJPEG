@@ -21,7 +21,7 @@ typedef struct tagBITMAPINFOHEADER{
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
 //////////////////////////////////////////////////////////////////////////////
-// ƒƒCƒ“ŠÖ”
+// ãƒ¡ã‚¤ãƒ³é–¢æ•°
 //////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
   image = (unsigned char *)malloc(height*width*3);
 
-  // ƒtƒ@ƒCƒ‹ƒwƒbƒ_‚Ìİ’è
+  // ãƒ•ã‚¡ã‚¤ãƒ«ãƒ˜ãƒƒãƒ€ã®è¨­å®š
   tbuff[0] = 'B';
   tbuff[1] = 'M';
   fwrite(tbuff,2,1,wfp);
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   tbuff[0] = 54;
   fwrite(tbuff,4,1,wfp);
 
-  // ƒCƒ“ƒtƒHƒ[ƒVƒ‡ƒ“‚Ìİ’è
+  // ã‚¤ãƒ³ãƒ•ã‚©ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®è¨­å®š
   lpBi.biSize            = 40;
   lpBi.biWidth           = width;
   lpBi.biHeight          = height;

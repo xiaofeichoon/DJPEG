@@ -1,51 +1,55 @@
 //////////////////////////////////////////////////////////////////////////////
-// JPEGƒfƒR[ƒh
-// 2005”N10Œ26“ú V1.0 
+// JPEGãƒ‡ã‚³ãƒ¼ãƒ‰
+// 2005å¹´10æœˆ26æ—¥ V1.0 
 // All Rights Reserved, Copyright (c) Hidemi Ishihara
 //////////////////////////////////////////////////////////////////////////////
 //
-// JPEG‚ğ“ü—Í‚·‚é‚ÆBitmap‚ğo—Í‚µ‚Ü‚·B
+// JPEGã‚’å…¥åŠ›ã™ã‚‹ã¨Bitmapã‚’å‡ºåŠ›ã—ã¾ã™ã€‚
 // 
 // % gcc -o djpeg fjpeg.c
-// % djpeg “ü—Íƒtƒ@ƒCƒ‹–¼@o—Íƒtƒ@ƒCƒ‹–¼
+// % djpeg å…¥åŠ›ãƒ•ã‚¡ã‚¤ãƒ«åã€€å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«å
 //////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
 
-unsigned int BuffIndex;  // JPEGƒf[ƒ^‚ÌˆÊ’u
-unsigned int BuffSize;   // JPEGƒf[ƒ^‚Ì‘å‚«‚³
-unsigned int BuffX;      // ‰æ‘œ‚Ì‰¡ƒTƒCƒY
-unsigned int BuffY;      // ‰æ‘œ‚ÌcƒTƒCƒY
-unsigned int BuffBlockX; // MCU‚Ì‰¡ŒÂ”
-unsigned int BuffBlockY; // MCU‚ÌcŒÂ”
-unsigned char *Buff;     // L’·‚µ‚½ƒf[ƒ^‚ğ“ü‚ê‚éƒoƒbƒtƒ@
+unsigned int BuffIndex;	// JPEGãƒ‡ãƒ¼ã‚¿ã®ä½ç½®
+unsigned int BuffSize;	// JPEGãƒ‡ãƒ¼ã‚¿ã®å¤§ãã•
+unsigned int BuffX;		// ç”»åƒã®æ¨ªã‚µã‚¤ã‚º
+unsigned int BuffY;		// ç”»åƒã®ç¸¦ã‚µã‚¤ã‚º
+unsigned int BuffBlockX; // MCUã®æ¨ªå€‹æ•°
+unsigned int BuffBlockY; // MCUã®ç¸¦å€‹æ•°
+unsigned char *Buff;		// ä¼¸é•·ã—ãŸãƒ‡ãƒ¼ã‚¿ã‚’å…¥ã‚Œã‚‹ãƒãƒƒãƒ•ã‚¡
 
-unsigned char  TableDQT[4][64];  // —Êq‰»ƒe[ƒuƒ‹
-unsigned short TableDHT[4][162]; // ƒnƒtƒ}ƒ“ƒe[ƒuƒ‹
+unsigned char	TableDQT[4][64];	// é‡å­åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«
+unsigned short TableDHT[4][162]; // ãƒãƒ•ãƒãƒ³ãƒ†ãƒ¼ãƒ–ãƒ«
 
-unsigned short TableHT[4][16]; // ƒnƒtƒ}ƒ“ƒXƒ^[ƒgƒe[ƒuƒ‹
-unsigned char  TableHN[4][16]; // ƒnƒtƒ}ƒ“ƒXƒ^[ƒg”Ô†
+unsigned short TableHT[4][16];	// ãƒãƒ•ãƒãƒ³ã‚¹ã‚¿ãƒ¼ãƒˆãƒ†ãƒ¼ãƒ–ãƒ«
+unsigned char	TableHN[4][16];	// ãƒãƒ•ãƒãƒ³ã‚¹ã‚¿ãƒ¼ãƒˆç•ªå·
 
-unsigned char BitCount = 0; // ˆ³kƒf[ƒ^‚Ì“Ç‚İ‚İˆÊ’u
-unsigned int LineData;      // L’·‚Ég‚¤ƒf[ƒ^
-unsigned int NextData;      // L’·‚Ég‚¤ƒf[ƒ^
+unsigned char BitCount = 0;	// åœ§ç¸®ãƒ‡ãƒ¼ã‚¿ã®èª­ã¿è¾¼ã¿ä½ç½®
+unsigned int LineData;		// ä¼¸é•·ã«ä½¿ã†ãƒ‡ãƒ¼ã‚¿
+unsigned int NextData;		// ä¼¸é•·ã«ä½¿ã†ãƒ‡ãƒ¼ã‚¿
 
-unsigned int PreData[3]; // DC¬•ª—p‚Ì’™‚ßƒoƒbƒtƒ@
+unsigned int PreData[3];		// DCæˆåˆ†ç”¨ã®è²¯ã‚ãƒãƒƒãƒ•ã‚¡
 
-unsigned char CompGray;  // ƒOƒŒ[ƒXƒP[ƒ‹‚È‚ç1
-unsigned char CompNum[3];  // ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌDQTƒe[ƒuƒ‹”Ô†
+unsigned char CompCount;		// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆæ•°
+unsigned char CompNum[4];	// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç•ªå·(æœªä½¿ç”¨)
+unsigned char CompSample[4];	// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+unsigned char CompDQT[4];	// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®DQTãƒ†ãƒ¼ãƒ–ãƒ«ç•ªå·
+unsigned char CompDHT[4];	// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®DHTãƒ†ãƒ¼ãƒ–ãƒ«ç•ªå·
+unsigned char CompSampleX, CompSampleY;
 
-// ƒWƒOƒUƒOƒe[ƒuƒ‹
+// ã‚¸ã‚°ã‚¶ã‚°ãƒ†ãƒ¼ãƒ–ãƒ«
 int zigzag_table[]={
-     0, 1, 8, 16,9, 2, 3,10,
-    17,24,32,25,18,11, 4, 5,
-    12,19,26,33,40,48,41,34,
-    27,20,13, 6, 7,14,21,28,
-    35,42,49,56,57,50,43,36,
-    29,22,15,23,30,37,44,51,
-    58,59,52,45,38,31,39,46,
-    53,60,61,54,47,55,62,63,
-    0
+	 0, 1, 8, 16,9, 2, 3,10,
+	17,24,32,25,18,11, 4, 5,
+	12,19,26,33,40,48,41,34,
+	27,20,13, 6, 7,14,21,28,
+	35,42,49,56,57,50,43,36,
+	29,22,15,23,30,37,44,51,
+	58,59,52,45,38,31,39,46,
+	53,60,61,54,47,55,62,63,
+	0
 };
 
 typedef unsigned short WORD;
@@ -55,393 +59,403 @@ typedef unsigned int DWORD;
 typedef int LONG;
 
 typedef struct tagBITMAPFILEHEADER {
-  WORD    bfType;
-  DWORD   bfSize;
-  WORD    bfReserved1;
-  WORD    bfReserved2;
-  DWORD   bfOffBits;
+	WORD	bfType;
+	DWORD	bfSize;
+	WORD	bfReserved1;
+	WORD	bfReserved2;
+	DWORD	bfOffBits;
 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
 typedef struct tagBITMAPINFOHEADER{
-  DWORD  biSize;
-  LONG   biWidth;
-  LONG   biHeight;
-  WORD   biPlanes;
-  WORD   biBitCount;
-  DWORD  biCompression;
-  DWORD  biSizeImage;
-  LONG   biXPelsPerMeter;
-  LONG   biYPelsPerMeter;
-  DWORD  biClrUsed;
-  DWORD  biClrImportant;
+	DWORD	biSize;
+	LONG	biWidth;
+	LONG	biHeight;
+	WORD	biPlanes;
+	WORD	biBitCount;
+	DWORD	biCompression;
+	DWORD	biSizeImage;
+	LONG	biXPelsPerMeter;
+	LONG	biYPelsPerMeter;
+	DWORD	biClrUsed;
+	DWORD	biClrImportant;
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
 //////////////////////////////////////////////////////////////////////////////
-// Bitmap‚ğo—Í‚·‚é
-// file: ƒtƒ@ƒCƒ‹–¼
-// x,y:  ‰æ‘œ‚ÌƒTƒCƒY
-// b:    ƒoƒCƒgƒJƒEƒ“ƒg(1ƒhƒbƒg•Ó‚è‚ÌƒoƒCƒg”)
+// Bitmapã‚’å‡ºåŠ›ã™ã‚‹
+// file: ãƒ•ã‚¡ã‚¤ãƒ«å
+// x,y:	ç”»åƒã®ã‚µã‚¤ã‚º
+// b:	ãƒã‚¤ãƒˆã‚«ã‚¦ãƒ³ãƒˆ(1ãƒ‰ãƒƒãƒˆè¾ºã‚Šã®ãƒã‚¤ãƒˆæ•°)
 //////////////////////////////////////////////////////////////////////////////
 void BmpSave(unsigned char *file,unsigned char *buff,
-             unsigned int x,unsigned int y,unsigned int b){
-  BITMAPFILEHEADER lpBf;
-  BITMAPINFOHEADER lpBi;
-  unsigned char tbuff[4];
-  FILE *fp;
-  unsigned char str;
-  int i,k;
+			 unsigned int x,unsigned int y,unsigned int b){
+	BITMAPFILEHEADER lpBf;
+	BITMAPINFOHEADER lpBi;
+	unsigned char tbuff[4];
+	FILE *fp;
+	unsigned char str;
+	int i,k;
 
-  if((fp = fopen(file,"wb")) == NULL){
-    perror(0);
-    exit(0);
-  }
+	if((fp = fopen(file,"wb")) == NULL){
+	perror(0);
+	exit(0);
+	}
 
-  // ƒtƒ@ƒCƒ‹ƒwƒbƒ_‚Ìİ’è
-  tbuff[0] = 'B';
-  tbuff[1] = 'M';
-  fwrite(tbuff,2,1,fp);
-  tbuff[3] = ((14 +40 +x *y *b) >> 24) & 0xff;
-  tbuff[2] = ((14 +40 +x *y *b) >> 16) & 0xff;
-  tbuff[1] = ((14 +40 +x *y *b) >>  8) & 0xff;
-  tbuff[0] = ((14 +40 +x *y *b) >>  0) & 0xff;
-  fwrite(tbuff,4,1,fp);
-  tbuff[1] = 0;
-  tbuff[0] = 0;
-  fwrite(tbuff,2,1,fp);
-  fwrite(tbuff,2,1,fp);
-  tbuff[3] = 0;
-  tbuff[2] = 0;
-  tbuff[1] = 0;
-  tbuff[0] = 54;
-  fwrite(tbuff,4,1,fp);
+	// ãƒ•ã‚¡ã‚¤ãƒ«ãƒ˜ãƒƒãƒ€ã®è¨­å®š
+	tbuff[0] = 'B';
+	tbuff[1] = 'M';
+	fwrite(tbuff,2,1,fp);
+	tbuff[3] = ((14 +40 +x *y *b) >> 24) & 0xff;
+	tbuff[2] = ((14 +40 +x *y *b) >> 16) & 0xff;
+	tbuff[1] = ((14 +40 +x *y *b) >>	8) & 0xff;
+	tbuff[0] = ((14 +40 +x *y *b) >>	0) & 0xff;
+	fwrite(tbuff,4,1,fp);
+	tbuff[1] = 0;
+	tbuff[0] = 0;
+	fwrite(tbuff,2,1,fp);
+	fwrite(tbuff,2,1,fp);
+	tbuff[3] = 0;
+	tbuff[2] = 0;
+	tbuff[1] = 0;
+	tbuff[0] = 54;
+	fwrite(tbuff,4,1,fp);
 
-  // ƒCƒ“ƒtƒHƒ[ƒVƒ‡ƒ“‚Ìİ’è
-  lpBi.biSize            = 40;
-  lpBi.biWidth           = x;
-  lpBi.biHeight          = y;
-  lpBi.biPlanes          = 1;
-  lpBi.biBitCount        = b*8;
-  lpBi.biCompression     = 0;
-  lpBi.biSizeImage       = x*y*b;
-  lpBi.biXPelsPerMeter   = 300;
-  lpBi.biYPelsPerMeter   = 300;
-  lpBi.biClrUsed         = 0;
-  lpBi.biClrImportant    = 0;
-  fwrite(&lpBi,1,40,fp);
+	// ã‚¤ãƒ³ãƒ•ã‚©ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®è¨­å®š
+	lpBi.biSize			= 40;
+	lpBi.biWidth			= x;
+	lpBi.biHeight			= y;
+	lpBi.biPlanes			= 1;
+	lpBi.biBitCount		= b*8;
+	lpBi.biCompression	 = 0;
+	lpBi.biSizeImage		= x*y*b;
+	lpBi.biXPelsPerMeter	= 300;
+	lpBi.biYPelsPerMeter	= 300;
+	lpBi.biClrUsed		 = 0;
+	lpBi.biClrImportant	= 0;
+	fwrite(&lpBi,1,40,fp);
 
-  // ã‰º”½“]
-  for(k=0;k<y/2;k++){
-    for(i=0;i<x*3;i++){
-      str = buff[k*x*3+i];
-      buff[k*x*3+i] = buff[((y-1)*x*3 -k*x*3) +i];
-      buff[((y-1)*x*3-k*x*3) +i] = str;
-    }
-  }
+	// ä¸Šä¸‹åè»¢
+	for(k=0;k<y/2;k++){
+		for(i=0;i<x*3;i++){
+			str = buff[k*x*3+i];
+			buff[k*x*3+i] = buff[((y-1)*x*3 -k*x*3) +i];
+			buff[((y-1)*x*3-k*x*3) +i] = str;
+		}
+	}
 
-  fwrite(buff,1,x*y*b,fp);
+	fwrite(buff,1,x*y*b,fp);
 
-  fclose(fp);
+	fclose(fp);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 1Byteæ“¾
+// 1Byteå–å¾—
 unsigned char get_byte(unsigned char *buff){
-  if(BuffIndex >= BuffSize) return 0;
-  return buff[BuffIndex++];
+	if(BuffIndex >= BuffSize) return 0;
+	return buff[BuffIndex++];
 }
 //////////////////////////////////////////////////////////////////////////////
-// 2Byteæ“¾
+// 2Byteå–å¾—
 unsigned short get_word(unsigned char *buff){
-  unsigned char h,l;
-  h = get_byte(buff);
-  l = get_byte(buff);
-  return (h<<8)|l;
+	unsigned char h,l;
+	h = get_byte(buff);
+	l = get_byte(buff);
+	return (h<<8)|l;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 32bitƒf[ƒ^æ“¾(L’·‚Ì‚İg—p‚·‚é)
+// 32bitãƒ‡ãƒ¼ã‚¿å–å¾—(ä¼¸é•·æ™‚ã®ã¿ä½¿ç”¨ã™ã‚‹)
 unsigned int get_data(unsigned char *buff){
-  unsigned char str = 0;
-  unsigned int data = 0;
-  str = get_byte(buff);
-  if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
-  data = str;
-  str = get_byte(buff);
-  if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
-  data = (data << 8) | str;
-  str = get_byte(buff);
-  if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
-  data = (data << 8) | str;
-  str = get_byte(buff);
-  if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
-  data = (data << 8) | str;
-  //printf(" Get Data: %08x\n",data);
-  return data;
+	unsigned char str = 0;
+	unsigned int data = 0;
+	str = get_byte(buff);
+	if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
+	data = str;
+	str = get_byte(buff);
+	if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
+	data = (data << 8) | str;
+	str = get_byte(buff);
+	if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
+	data = (data << 8) | str;
+	str = get_byte(buff);
+	if(str ==0xff) if(get_byte(buff)== 0x00) str = 0xFF; else str = 0x00;
+	data = (data << 8) | str;
+	//printf(" Get Data: %08x\n",data);
+	return data;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// APP0ˆ—
+// APP0å‡¦ç†
 void GetAPP0(unsigned char *buff){
-  unsigned short data;
-  unsigned char str;
-  unsigned int i;
-  
-  data = get_word(buff); // Lp(ƒŒƒ“ƒOƒX)
-  // APP0‚Í“Ç‚Ü‚È‚­‚Ä‚à‚¢‚¢‚Ì‚Åæ‚è‡‚¦‚¸ƒŒƒ“ƒOƒX•ªƒXƒLƒbƒv‚·‚é
-  for(i=0;i<data-2;i++){
-    str = get_byte(buff);
-  }
-  /*
-  str = get_byte(buff);  // ¯•Êq(5•¶š,"JFIF"‚Æ[00])
-  str = get_byte(buff);
-  str = get_byte(buff);
-  str = get_byte(buff);
-  str = get_byte(buff);
-  data = get_word(buff); // ƒo[ƒWƒ‡ƒ“
-  str = get_byte(buff);  // ‰ğ‘œ“x‚Ì’PˆÊ
-  data = get_word(buff); // ‰¡•ûŒü‚Ì‰ğ‘œ“x
-  data = get_word(buff); // c•ûŒü‚Ì‰ğ‘œ“x
-  data = get_word(buff); // ƒTƒ€ƒlƒCƒ‹‚Ì‰¡ƒsƒNƒZƒ‹”
-  data = get_word(buff); // ƒTƒ€ƒlƒCƒ‹‚ÌcƒsƒNƒZƒ‹”
-  data = get_word(buff); // ƒTƒ€ƒlƒCƒ‹ƒf[ƒ^(‚ ‚éê‡‚¾‚¯)
-  */
+	unsigned short data;
+	unsigned char str;
+	unsigned int i;
+	
+	data = get_word(buff); // Lp(ãƒ¬ãƒ³ã‚°ã‚¹)
+	// APP0ã¯èª­ã¾ãªãã¦ã‚‚ã„ã„ã®ã§å–ã‚Šåˆãˆãšãƒ¬ãƒ³ã‚°ã‚¹åˆ†ã‚¹ã‚­ãƒƒãƒ—ã™ã‚‹
+	for(i=0;i<data-2;i++){
+	str = get_byte(buff);
+	}
+#if 0
+	str = get_byte(buff);		// è­˜åˆ¥å­(5æ–‡å­—,"JFIF"ã¨[00])
+	str = get_byte(buff);
+	str = get_byte(buff);
+	str = get_byte(buff);
+	str = get_byte(buff);
+	data = get_word(buff);	// ãƒãƒ¼ã‚¸ãƒ§ãƒ³
+	str = get_byte(buff);		// è§£åƒåº¦ã®å˜ä½
+	data = get_word(buff);	// æ¨ªæ–¹å‘ã®è§£åƒåº¦
+	data = get_word(buff);	// ç¸¦æ–¹å‘ã®è§£åƒåº¦
+	data = get_word(buff);	// ã‚µãƒ ãƒã‚¤ãƒ«ã®æ¨ªãƒ”ã‚¯ã‚»ãƒ«æ•°
+	data = get_word(buff);	// ã‚µãƒ ãƒã‚¤ãƒ«ã®ç¸¦ãƒ”ã‚¯ã‚»ãƒ«æ•°
+	data = get_word(buff);	// ã‚µãƒ ãƒã‚¤ãƒ«ãƒ‡ãƒ¼ã‚¿(ã‚ã‚‹å ´åˆã ã‘)
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// DQTˆ—
+// DQTå‡¦ç†
 void GetDQT(unsigned char *buff){
-  unsigned short data;
-  unsigned char str;
-  unsigned int i;
-  unsigned int tablenum;
+	unsigned short data;
+	unsigned char str;
+	unsigned int i;
+	unsigned int tablenum;
 
-  data = get_word(buff);
-  str = get_byte(buff); // ƒe[ƒuƒ‹”Ô†
-  
-  printf("*** DQT Table %d\n",str);
-  for(i=0;i<64;i++){
-    TableDQT[str][i] = get_byte(buff);
-    printf(" %2d: %2x\n",i,TableDQT[str][i]);
-  }
+	data = get_word(buff);
+	str = get_byte(buff); // ãƒ†ãƒ¼ãƒ–ãƒ«ç•ªå·
+	
+	printf("*** DQT Table %d\n",str);
+	for(i=0;i<64;i++){
+	TableDQT[str][i] = get_byte(buff);
+	printf(" %2d: %2x\n",i,TableDQT[str][i]);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// DHTˆ—
+// DHTå‡¦ç†
 void GetDHT(unsigned char *buff){
-  unsigned short data;
-  unsigned char str;
-  unsigned int i;
-  unsigned char max,count;
-  unsigned short ShiftData = 0x8000,HuffmanData =0x0000;
-  unsigned int tablenum;
+	unsigned short data;
+	unsigned char str;
+	unsigned int i;
+	unsigned char max,count;
+	unsigned short ShiftData = 0x8000,HuffmanData =0x0000;
+	unsigned int tablenum;
 
-  data = get_word(buff);
-  str = get_byte(buff);
+	data = get_word(buff);
+	str = get_byte(buff);
 
-  switch(str){
-  case 0x00:
-    // Y’¼—¬¬•ª
-    tablenum = 0x00;
-    break;
-  case 0x10:
-    // YŒğ—¬¬•ª
-    tablenum = 0x01;
-    break;
-  case 0x01:
-    // CbCr’¼—¬¬•ª
-    tablenum = 0x02;
-    break;
-  case 0x11:
-    // CbCrŒğ—¬¬•ª
-    tablenum = 0x03;
-    break;
-  }
+	switch(str){
+	case 0x00:
+		// Yç›´æµæˆåˆ†
+		tablenum = 0x00;
+		break;
+	case 0x10:
+		// Yäº¤æµæˆåˆ†
+		tablenum = 0x01;
+		break;
+	case 0x01:
+		// CbCrç›´æµæˆåˆ†
+		tablenum = 0x02;
+		break;
+	case 0x11:
+		// CbCräº¤æµæˆåˆ†
+		tablenum = 0x03;
+		break;
+	}
 
-  printf("*** DHT Table/Number %d\n",tablenum);
-  // ƒe[ƒuƒ‹‚ğì¬‚·‚é
-  max = 0;
-  for(i=0;i<16;i++){
-    count = get_byte(buff);
-    TableHT[tablenum][i] = HuffmanData;
-    TableHN[tablenum][i] = max;
-    printf(" %2d: %4x,%2x\n",i,TableHT[tablenum][i],TableHN[tablenum][i]);
-    max = max + count;
-    while(!(count==0)){
-      HuffmanData += ShiftData;
-      count--;
-    }
-    ShiftData = ShiftData >> 1; // ‰E‚É1bitƒVƒtƒg‚·‚é
-  }
+	printf("*** DHT Table/Number %d\n",tablenum);
+	// ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’ä½œæˆã™ã‚‹
+	max = 0;
+	for(i=0;i<16;i++){
+		count = get_byte(buff);
+		TableHT[tablenum][i] = HuffmanData;
+		TableHN[tablenum][i] = max;
+		printf(" %2d: %4x,%2x\n",i,TableHT[tablenum][i],TableHN[tablenum][i]);
+		max = max + count;
+		while(!(count==0)){
+			HuffmanData += ShiftData;
+			count--;
+		}
+		ShiftData = ShiftData >> 1; // å³ã«1bitã‚·ãƒ•ãƒˆã™ã‚‹
+	}
 
-  printf("*** DHT Table %d\n",tablenum);
-  for(i=0;i<max;i++){
-    TableDHT[tablenum][i] = get_byte(buff);
-    printf(" %2d: %2x\n",i,TableDHT[tablenum][i]);
-  }
+	printf("*** DHT Table %d\n",tablenum);
+	for(i=0;i<max;i++){
+		TableDHT[tablenum][i] = get_byte(buff);
+		printf(" %2d: %2x\n",i,TableDHT[tablenum][i]);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// SOFˆ—
+// SOFå‡¦ç†
 void GetSOF(unsigned char *buff){
-  unsigned short data;
-  unsigned char str;
-  unsigned int i;
-  unsigned char count;
+	unsigned short data;
+	unsigned char str;
+	unsigned int i;
+	unsigned char count;
+	unsigned char num;
 
-  data = get_word(buff);
-  str = get_byte(buff);
-  BuffY = get_word(buff); // ‰æ‘œ‚Ì‰¡ƒTƒCƒY
-  BuffX = get_word(buff); // ‰æ‘œ‚ÌcƒTƒCƒY
-  count = get_byte(buff); // ƒf[ƒ^‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg”
-  switch(count){
-    1: CompGray = 1; break;  // ƒOƒŒ[ƒXƒP[ƒ‹
-    3: CompGray = 0; break;  // YCbYr or YIQ
-    default: CompGray = 0; break;
-  }
-  printf(" CompNum: %d\n", count);
-  for(i=0;i<count;i++){
-    str = get_byte(buff); // ƒRƒ“ƒ|[ƒlƒ“ƒg”Ô†
-    printf(" Comp[%d]: %02X\n", i, str);
-    str = get_byte(buff); // ƒTƒ“ƒvƒŠƒ“ƒO”ä—¦
-    printf(" Sample[%d]: %02X\n", i, str);
-    str = get_byte(buff); // DQTƒe[ƒuƒ‹”Ô†
-    printf(" DQT[%d]: %02X\n", i, str);
-  }
+	data = get_word(buff);
+	str = get_byte(buff);
+	BuffY = get_word(buff); // ç”»åƒã®æ¨ªã‚µã‚¤ã‚º
+	BuffX = get_word(buff); // ç”»åƒã®ç¸¦ã‚µã‚¤ã‚º
+	CompCount	= get_byte(buff); // ãƒ‡ãƒ¼ã‚¿ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆæ•°
+	printf(" CompCount: %d\n", CompCount);
+	for(i=0;i<CompCount;i++){
+		str = get_byte(buff); // ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆç•ªå·
+		num = str;
+		printf(" Comp[%d]: %02X\n", i, str);
+		str = get_byte(buff); // ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æ¯”ç‡
+		CompSample[num] = str;
+		printf(" Sample[%d]: %02X\n", i, str);
+		str = get_byte(buff); // DQTãƒ†ãƒ¼ãƒ–ãƒ«ç•ªå·
+		CompDQT[num] = str;
+		printf(" DQT[%d]: %02X\n", i, str);
+	}
+	
+	if(CompCount == 1){
+		CompSampleX = 1;
+		CompSampleY = 1;
+	}else{
+		CompSampleX =  CompSample[1]       & 0x0F;
+		CompSampleY = (CompSample[1] >> 4) & 0x0F;
+	}
 
-  // MCU‚ÌƒTƒCƒY‚ğZo‚·‚é
-  BuffBlockX = (int)(BuffX /16);
-  if(BuffX % 16 >0) BuffBlockX++;
-  BuffBlockY = (int)(BuffY /16);
-  if(BuffY % 16 >0) BuffBlockY++;
-  Buff = (unsigned char*)malloc(BuffBlockY*16*BuffBlockX*16*3);
+	// MCUã®ã‚µã‚¤ã‚ºã‚’ç®—å‡ºã™ã‚‹(ã²ã¨å¡Šåˆ†)
+	BuffBlockX = (int)(BuffX /(8 * CompSampleX));
+	if(BuffX % (8 * CompSampleX) >0) BuffBlockX++;
+	BuffBlockY = (int)(BuffY /(8 * CompSampleY));
+	if(BuffY % (8 * CompSampleY) >0) BuffBlockY++;
+	Buff = (unsigned char*)malloc(BuffBlockY*(8 * CompSampleY)*BuffBlockX*(8 * CompSampleX)*3);
 
-  printf(" size : %d x %d,(%d x %d)\n",BuffX,BuffY,BuffBlockX,BuffBlockY);
+	printf(" size : %d x %d,(%d x %d)\n",BuffX,BuffY,BuffBlockX,BuffBlockY);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// SOSˆ—
+// SOSå‡¦ç†
 void GetSOS(unsigned char *buff){
-  unsigned short data;
-  unsigned char str;
-  unsigned int i;
-  unsigned char count;
+	unsigned short data;
+	unsigned char str;
+	unsigned int i;
+	unsigned char count;
+	unsigned char num;
 
-  data = get_word(buff);
-  count = get_byte(buff);
-  for(i=0;i<count;i++){
-    str = get_byte(buff);
-    printf(" CompNum[%d]: %02X\n", i, str);
-    str = get_byte(buff);
-    printf(" CompDHT[%d]: %02X\n", i, str);
-  }
-  str = get_byte(buff);
-  str = get_byte(buff);
-  str = get_byte(buff);
+	data = get_word(buff);
+	count = get_byte(buff);
+	for(i=0;i<count;i++){
+		str = get_byte(buff);
+		num = str;
+		printf(" CompNum[%d]: %02X\n", i, str);
+		str = get_byte(buff);
+		CompDHT[num] = str;
+		printf(" CompDHT[%d]: %02X\n", i, str);
+	}
+	str = get_byte(buff);
+	str = get_byte(buff);
+	str = get_byte(buff);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ƒnƒtƒ}ƒ“ƒfƒR[ƒh{‹t—Êq‰»{‹tƒWƒOƒUƒO
+// ãƒãƒ•ãƒãƒ³ãƒ‡ã‚³ãƒ¼ãƒ‰ï¼‹é€†é‡å­åŒ–ï¼‹é€†ã‚¸ã‚°ã‚¶ã‚°
 void HuffmanDecode(unsigned char *buff, unsigned char table, int *BlockData){
-  unsigned int data;
-  unsigned char zero;
-  unsigned short code,huffman;
-  unsigned char count =0;
-  unsigned int BitData;
-  unsigned int i;
-  unsigned char tabledqt,tabledc,tableac,tablen;
-  unsigned char ZeroCount,DataCount;
-  int DataCode;
+	unsigned int data;
+	unsigned char zero;
+	unsigned short code,huffman;
+	unsigned char count =0;
+	unsigned int BitData;
+	unsigned int i;
+	unsigned char tabledqt,tabledc,tableac,tablen;
+	unsigned char ZeroCount,DataCount;
+	int DataCode;
 
-  for(i=0;i<64;i++) BlockData[i] = 0x0; // ƒf[ƒ^‚ÌƒŠƒZƒbƒg
+	for(i=0;i<64;i++) BlockData[i] = 0x0; // ãƒ‡ãƒ¼ã‚¿ã®ãƒªã‚»ãƒƒãƒˆ
 
-  // ƒe[ƒuƒ‹”Ô†‚ğİ’è‚·‚é
-  if(table ==0x00){
-    tabledqt =0x00;
-    tabledc =0x00;
-    tableac =0x01;
-  }else if(table ==0x01){
-    tabledqt =0x01;
-    tabledc  =0x02;
-    tableac  =0x03;
-  }else{
-    tabledqt =0x01;
-    tabledc  =0x02;
-    tableac  =0x03;
-  }
+	// ãƒ†ãƒ¼ãƒ–ãƒ«ç•ªå·ã‚’è¨­å®šã™ã‚‹
+	if(table ==0x00){
+		tabledqt =0x00;
+		tabledc =0x00;
+		tableac =0x01;
+	}else if(table ==0x01){
+		tabledqt =0x01;
+		tabledc	=0x02;
+		tableac	=0x03;
+	}else{
+		tabledqt =0x01;
+		tabledc	=0x02;
+		tableac	=0x03;
+	}
 
-  count = 0; // ”O‚Ì‚½‚ß‚É
-  while(count <64){
-    // ƒrƒbƒgƒJƒEƒ“ƒg‚ÌˆÊ’u‚ª32‚ğ‰z‚¦‚½ê‡AV‚½‚Éƒf[ƒ^‚ğæ“¾‚·‚é
-    if(BitCount >=32){
-      LineData = NextData;
-      NextData = get_data(buff);
-      BitCount -= 32;
-    }
-    // HuffmanƒfƒR[ƒh‚Åg—p‚·‚éƒf[ƒ^‚É’u‚«Š·‚¦‚é
-    if(BitCount >0){
-      BitData = (LineData << BitCount) | (NextData >> (32 - BitCount));
-    }else{
-      BitData = LineData;
-    }
-    printf(" Haffuman BitData(%2d,%2d): %8x\n",table,count,BitData);
+	count = 0; // å¿µã®ãŸã‚ã«
+	while(count <64){
+	// ãƒ“ãƒƒãƒˆã‚«ã‚¦ãƒ³ãƒˆã®ä½ç½®ãŒ32ã‚’è¶ŠãˆãŸå ´åˆã€æ–°ãŸã«ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
+	if(BitCount >=32){
+		LineData = NextData;
+		NextData = get_data(buff);
+		BitCount -= 32;
+	}
+	// Huffmanãƒ‡ã‚³ãƒ¼ãƒ‰ã§ä½¿ç”¨ã™ã‚‹ãƒ‡ãƒ¼ã‚¿ã«ç½®ãæ›ãˆã‚‹
+	if(BitCount >0){
+		BitData = (LineData << BitCount) | (NextData >> (32 - BitCount));
+	}else{
+		BitData = LineData;
+	}
+	printf(" Haffuman BitData(%2d,%2d): %8x\n",table,count,BitData);
 
-    // g—p‚·‚éƒe[ƒuƒ‹‚ÌƒZƒŒƒNƒg
-    if(count ==0) tablen = tabledc; else tablen = tableac;
-    code = (unsigned short)(BitData >> 16); // ƒR[ƒh‚Í16ƒrƒbƒgg—p‚·‚é
-    // ƒnƒtƒ}ƒ“ƒR[ƒh‚ª‚Ç‚Ìƒrƒbƒg”‚É‚¢‚é‚©Š„‚èo‚·
-    for(i=0;i<16;i++) {
-      printf(" Haff hit(%2d:%2d): %8x,%8x\n",table,i,TableHT[tablen][i],code);
-      if(TableHT[tablen][i]>code) break;
-    }
-    i--;
+	// ä½¿ç”¨ã™ã‚‹ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚»ãƒ¬ã‚¯ãƒˆ
+	if(count ==0) tablen = tabledc; else tablen = tableac;
+	code = (unsigned short)(BitData >> 16); // ã‚³ãƒ¼ãƒ‰ã¯16ãƒ“ãƒƒãƒˆä½¿ç”¨ã™ã‚‹
+	// ãƒãƒ•ãƒãƒ³ã‚³ãƒ¼ãƒ‰ãŒã©ã®ãƒ“ãƒƒãƒˆæ•°ã«ã„ã‚‹ã‹å‰²ã‚Šå‡ºã™
+	for(i=0;i<16;i++) {
+		printf(" Haff hit(%2d:%2d): %8x,%8x\n",table,i,TableHT[tablen][i],code);
+		if(TableHT[tablen][i]>code) break;
+	}
+	i--;
 
-    code    = (unsigned short)(code >> (15 - i)); // ƒR[ƒh‚Ì‰ºˆÊ‚ğ‘µ‚¦‚é
-    huffman = (unsigned short)(TableHT[tablen][i] >> (15 - i));
+	code	= (unsigned short)(code >> (15 - i)); // ã‚³ãƒ¼ãƒ‰ã®ä¸‹ä½ã‚’æƒãˆã‚‹
+	huffman = (unsigned short)(TableHT[tablen][i] >> (15 - i));
 
-    printf(" PreUse Dht Number(%2d): %8x,%8x,%8x\n",i,code,huffman,TableHN[tablen][i]);
+	printf(" PreUse Dht Number(%2d): %8x,%8x,%8x\n",i,code,huffman,TableHN[tablen][i]);
 
-    // ƒnƒtƒ}ƒ“ƒe[ƒuƒ‹‚ÌêŠ‚ğZo‚·‚é
-    code = code - huffman + TableHN[tablen][i];
+	// ãƒãƒ•ãƒãƒ³ãƒ†ãƒ¼ãƒ–ãƒ«ã®å ´æ‰€ã‚’ç®—å‡ºã™ã‚‹
+	code = code - huffman + TableHN[tablen][i];
 
-    printf(" Use Dht Number: %8x\n",code);
+	printf(" Use Dht Number: %8x\n",code);
 
-    ZeroCount = (TableDHT[tablen][code] >> 4) & 0x0F; // ƒ[ƒƒŒƒ“ƒOƒX‚ÌŒÂ”
-    DataCount = (TableDHT[tablen][code]) & 0x0F;      // ‘±‚­ƒf[ƒ^‚Ìƒrƒbƒg’·
-    printf(" Dht Table: %8x,%8x\n",ZeroCount,DataCount);
-    // ƒnƒtƒ}ƒ“ƒR[ƒh‚ğ”²‚«A‘±‚­ƒf[ƒ^‚ğæ“¾‚·‚é
-    DataCode  = (BitData << (i + 1)) >> (16 + (16 - DataCount));
-    // æ“ªƒrƒbƒg‚ª"0"‚Å‚ ‚ê‚Î•‰‚Ìƒf[ƒ^AãˆÊƒrƒbƒg‚É‚P‚ğ—§‚Ä‚ÄA‚P‚ğ‘«‚·
-    //if(!(DataCode & (1<<(DataCount-1)))) DataCode=DataCode-(1<<DataCount)+1;
-    if(!(DataCode & (1<<(DataCount-1))) && DataCount !=0){
-      DataCode |= (~0) << DataCount;
-      DataCode += 1;
-    }
+	ZeroCount = (TableDHT[tablen][code] >> 4) & 0x0F; // ã‚¼ãƒ­ãƒ¬ãƒ³ã‚°ã‚¹ã®å€‹æ•°
+	DataCount = (TableDHT[tablen][code]) & 0x0F;		// ç¶šããƒ‡ãƒ¼ã‚¿ã®ãƒ“ãƒƒãƒˆé•·
+	printf(" Dht Table: %8x,%8x\n",ZeroCount,DataCount);
+	// ãƒãƒ•ãƒãƒ³ã‚³ãƒ¼ãƒ‰ã‚’æŠœãã€ç¶šããƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
+	DataCode	= (BitData << (i + 1)) >> (16 + (16 - DataCount));
+	// å…ˆé ­ãƒ“ãƒƒãƒˆãŒ"0"ã§ã‚ã‚Œã°è² ã®ãƒ‡ãƒ¼ã‚¿ã€ä¸Šä½ãƒ“ãƒƒãƒˆã«ï¼‘ã‚’ç«‹ã¦ã¦ã€ï¼‘ã‚’è¶³ã™
+	//if(!(DataCode & (1<<(DataCount-1)))) DataCode=DataCode-(1<<DataCount)+1;
+	if(!(DataCode & (1<<(DataCount-1))) && DataCount !=0){
+		DataCode |= (~0) << DataCount;
+		DataCode += 1;
+	}
 
-    printf(" Use Bit: %d\n",(i + DataCount +1));
-    BitCount += (i + DataCount +1); // g—p‚µ‚½ƒrƒbƒg”‚ğ‰ÁZ‚·‚é
+	printf(" Use Bit: %d\n",(i + DataCount +1));
+	BitCount += (i + DataCount +1); // ä½¿ç”¨ã—ãŸãƒ“ãƒƒãƒˆæ•°ã‚’åŠ ç®—ã™ã‚‹
 
-    if(count ==0){
-      // DC¬•ª‚Ìê‡Aƒf[ƒ^‚Æ‚È‚é
-      if(DataCount ==0) DataCode =0x0; // DataCount‚ª0‚È‚çƒf[ƒ^‚Í0‚Å‚ ‚é
-      PreData[table] += DataCode; // DC¬•ª‚Í‰ÁZ‚µ‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
-      // ‹t—Êq‰»{ƒWƒOƒUƒO
-      BlockData[zigzag_table[count]] =PreData[table]*TableDQT[tabledqt][count];
-      count ++;
-    }else{
-      if(ZeroCount == 0x0 && DataCount == 0x0){
-        // AC¬•ª‚ÅEOB•„†‚ª—ˆ‚½ê‡‚ÍI—¹‚·‚é
-        break;
-      }else if(ZeroCount ==0xF && DataCount == 0x0){
-        // ZRL•„†‚ª—ˆ‚½ê‡A15ŒÂ‚Ìƒ[ƒƒf[ƒ^‚Æ‚İ‚È‚·
-        count += 15;
-      }else{
-        count += ZeroCount;
-        // ‹t—Êq‰»{ƒWƒOƒUƒO
-        BlockData[zigzag_table[count]] = DataCode * TableDQT[tabledqt][count];
-      }
-      count ++;
-    }
-  }
+	if(count ==0){
+		// DCæˆåˆ†ã®å ´åˆã€ãƒ‡ãƒ¼ã‚¿ã¨ãªã‚‹
+		if(DataCount ==0) DataCode =0x0; // DataCountãŒ0ãªã‚‰ãƒ‡ãƒ¼ã‚¿ã¯0ã§ã‚ã‚‹
+		PreData[table] += DataCode; // DCæˆåˆ†ã¯åŠ ç®—ã—ãªã‘ã‚Œã°ãªã‚‰ãªã„
+		// é€†é‡å­åŒ–ï¼‹ã‚¸ã‚°ã‚¶ã‚°
+		BlockData[zigzag_table[count]] =PreData[table]*TableDQT[tabledqt][count];
+		count ++;
+	}else{
+		if(ZeroCount == 0x0 && DataCount == 0x0){
+			// ACæˆåˆ†ã§EOBç¬¦å·ãŒæ¥ãŸå ´åˆã¯çµ‚äº†ã™ã‚‹
+			break;
+		}else if(ZeroCount ==0xF && DataCount == 0x0){
+			// ZRLç¬¦å·ãŒæ¥ãŸå ´åˆã€15å€‹ã®ã‚¼ãƒ­ãƒ‡ãƒ¼ã‚¿ã¨ã¿ãªã™
+			count += 15;
+		}else{
+			count += ZeroCount;
+			// é€†é‡å­åŒ–ï¼‹ã‚¸ã‚°ã‚¶ã‚°
+			BlockData[zigzag_table[count]] = DataCode * TableDQT[tabledqt][count];
+		}
+		count ++;
+	}
+	}
 }
 
 const int C1_16 = 4017; // cos( pi/16) x4096
@@ -450,380 +464,372 @@ const int C3_16 = 3406; // cos(3pi/16) x4096
 const int C4_16 = 2896; // cos(4pi/16) x4096
 const int C5_16 = 2276; // cos(5pi/16) x4096
 const int C6_16 = 1567; // cos(6pi/16) x4096
-const int C7_16 = 799;  // cos(7pi/16) x4096
+const int C7_16 = 799;	// cos(7pi/16) x4096
 
 //////////////////////////////////////////////////////////////////////////////
-// ‹tDCT
+// é€†DCT
 void DctDecode(int *BlockIn, int *BlockOut){
-  int i;
-  int s0,s1,s2,s3,s4,s5,s6,s7;
-  int t0,t1,t2,t3,t4,t5,t6,t7;
+	int i;
+	int s0,s1,s2,s3,s4,s5,s6,s7;
+	int t0,t1,t2,t3,t4,t5,t6,t7;
 
-  /*
-  printf("-----------------------------\n");
-  printf(" iDCT(In)\n");
-  printf("-----------------------------\n");
-  for(i=0;i<64;i++){
-    printf("%2d: %8x\n",i,BlockIn[i]);
-  }
-  */
+	/*
+	printf("-----------------------------\n");
+	printf(" iDCT(In)\n");
+	printf("-----------------------------\n");
+	for(i=0;i<64;i++){
+	printf("%2d: %8x\n",i,BlockIn[i]);
+	}
+	*/
 
-  for(i=0;i<8;i++) {
-    s0 = (BlockIn[0] + BlockIn[4]) * C4_16;
-    s1 = (BlockIn[0] - BlockIn[4]) * C4_16;
-    s3 = (BlockIn[2] * C2_16) + (BlockIn[6] * C6_16);
-    s2 = (BlockIn[2] * C6_16) - (BlockIn[6] * C2_16);
-    s7 = (BlockIn[1] * C1_16) + (BlockIn[7] * C7_16);
-    s4 = (BlockIn[1] * C7_16) - (BlockIn[7] * C1_16);
-    s6 = (BlockIn[5] * C5_16) + (BlockIn[3] * C3_16);
-    s5 = (BlockIn[5] * C3_16) - (BlockIn[3] * C5_16);
+	for(i=0;i<8;i++) {
+		s0 = (BlockIn[0] + BlockIn[4]) * C4_16;
+		s1 = (BlockIn[0] - BlockIn[4]) * C4_16;
+		s3 = (BlockIn[2] * C2_16) + (BlockIn[6] * C6_16);
+		s2 = (BlockIn[2] * C6_16) - (BlockIn[6] * C2_16);
+		s7 = (BlockIn[1] * C1_16) + (BlockIn[7] * C7_16);
+		s4 = (BlockIn[1] * C7_16) - (BlockIn[7] * C1_16);
+		s6 = (BlockIn[5] * C5_16) + (BlockIn[3] * C3_16);
+		s5 = (BlockIn[5] * C3_16) - (BlockIn[3] * C5_16);
 
-    /*
-    printf("s0:%8x\n",s0);
-    printf("s1:%8x\n",s1);
-    printf("s2:%8x\n",s2);
-    printf("s3:%8x\n",s3);
-    printf("s4:%8x\n",s4);
-    printf("s5:%8x\n",s5);
-    printf("s6:%8x\n",s6);
-    printf("s7:%8x\n",s7);
-    */
+		/*
+		printf("s0:%8x\n",s0);
+		printf("s1:%8x\n",s1);
+		printf("s2:%8x\n",s2);
+		printf("s3:%8x\n",s3);
+		printf("s4:%8x\n",s4);
+		printf("s5:%8x\n",s5);
+		printf("s6:%8x\n",s6);
+		printf("s7:%8x\n",s7);
+		*/
 
-    t0 = s0 + s3;
-    t3 = s0 - s3;
-    t1 = s1 + s2;
-    t2 = s1 - s2;
-    t4 = s4 + s5;
-    t5 = s4 - s5;
-    t7 = s7 + s6;
-    t6 = s7 - s6;
+		t0 = s0 + s3;
+		t3 = s0 - s3;
+		t1 = s1 + s2;
+		t2 = s1 - s2;
+		t4 = s4 + s5;
+		t5 = s4 - s5;
+		t7 = s7 + s6;
+		t6 = s7 - s6;
 
-    /*    
-    printf("t0:%8x\n",t0);
-    printf("t1:%8x\n",t1);
-    printf("t2:%8x\n",t2);
-    printf("t3:%8x\n",t3);
-    printf("t4:%8x\n",t4);
-    printf("t5:%8x\n",t5);
-    printf("t6:%8x\n",t6);
-    printf("t7:%8x\n",t7);
-    */
+		/*	
+		printf("t0:%8x\n",t0);
+		printf("t1:%8x\n",t1);
+		printf("t2:%8x\n",t2);
+		printf("t3:%8x\n",t3);
+		printf("t4:%8x\n",t4);
+		printf("t5:%8x\n",t5);
+		printf("t6:%8x\n",t6);
+		printf("t7:%8x\n",t7);
+		*/
 
-    s6 = (t5 + t6) * 181 / 256; // 1/sqrt(2)
-    s5 = (t6 - t5) * 181 / 256; // 1/sqrt(2)
+		s6 = (t5 + t6) * 181 / 256; // 1/sqrt(2)
+		s5 = (t6 - t5) * 181 / 256; // 1/sqrt(2)
 
-    /*    
-    printf("s5:%8x\n",s5);
-    printf("s6:%8x\n",s6);
-    */
+		/*	
+		printf("s5:%8x\n",s5);
+		printf("s6:%8x\n",s6);
+		*/
 
-    *BlockIn++ = (t0 + t7) >> 11;
-    *BlockIn++ = (t1 + s6) >> 11;
-    *BlockIn++ = (t2 + s5) >> 11;
-    *BlockIn++ = (t3 + t4) >> 11;
-    *BlockIn++ = (t3 - t4) >> 11;
-    *BlockIn++ = (t2 - s5) >> 11;
-    *BlockIn++ = (t1 - s6) >> 11;
-    *BlockIn++ = (t0 - t7) >> 11;
-  }
+		*BlockIn++ = (t0 + t7) >> 11;
+		*BlockIn++ = (t1 + s6) >> 11;
+		*BlockIn++ = (t2 + s5) >> 11;
+		*BlockIn++ = (t3 + t4) >> 11;
+		*BlockIn++ = (t3 - t4) >> 11;
+		*BlockIn++ = (t2 - s5) >> 11;
+		*BlockIn++ = (t1 - s6) >> 11;
+		*BlockIn++ = (t0 - t7) >> 11;
+	}
 
-  BlockIn -= 64;
+	BlockIn -= 64;
 
-  /*
-  printf("-----------------------------\n");
-  printf(" iDCT(Middle)\n");
-  printf("-----------------------------\n");
-  for(i=0;i<64;i++){
-    printf("%2d: %8x\n",i,BlockIn[i]);
-  }
-  */
+	/*
+	printf("-----------------------------\n");
+	printf(" iDCT(Middle)\n");
+	printf("-----------------------------\n");
+	for(i=0;i<64;i++){
+	printf("%2d: %8x\n",i,BlockIn[i]);
+	}
+	*/
 
-  for(i=0;i<8;i++){
-    s0 = (BlockIn[ 0] + BlockIn[32]) * C4_16;
-    s1 = (BlockIn[ 0] - BlockIn[32]) * C4_16;
-    s3 = BlockIn[16] * C2_16 + BlockIn[48] * C6_16;
-    s2 = BlockIn[16] * C6_16 - BlockIn[48] * C2_16;
-    s7 = BlockIn[ 8] * C1_16 + BlockIn[56] * C7_16;
-    s4 = BlockIn[ 8] * C7_16 - BlockIn[56] * C1_16;
-    s6 = BlockIn[40] * C5_16 + BlockIn[24] * C3_16;
-    s5 = BlockIn[40] * C3_16 - BlockIn[24] * C5_16;
+	for(i=0;i<8;i++){
+		s0 = (BlockIn[ 0] + BlockIn[32]) * C4_16;
+		s1 = (BlockIn[ 0] - BlockIn[32]) * C4_16;
+		s3 = BlockIn[16] * C2_16 + BlockIn[48] * C6_16;
+		s2 = BlockIn[16] * C6_16 - BlockIn[48] * C2_16;
+		s7 = BlockIn[ 8] * C1_16 + BlockIn[56] * C7_16;
+		s4 = BlockIn[ 8] * C7_16 - BlockIn[56] * C1_16;
+		s6 = BlockIn[40] * C5_16 + BlockIn[24] * C3_16;
+		s5 = BlockIn[40] * C3_16 - BlockIn[24] * C5_16;
 
-    /*
-    printf("s0:%8x\n",s0);
-    printf("s1:%8x\n",s1);
-    printf("s2:%8x\n",s2);
-    printf("s3:%8x\n",s3);
-    printf("s4:%8x\n",s4);
-    printf("s5:%8x\n",s5);
-    printf("s6:%8x\n",s6);
-    printf("s7:%8x\n",s7);
-    */
+		/*
+		printf("s0:%8x\n",s0);
+		printf("s1:%8x\n",s1);
+		printf("s2:%8x\n",s2);
+		printf("s3:%8x\n",s3);
+		printf("s4:%8x\n",s4);
+		printf("s5:%8x\n",s5);
+		printf("s6:%8x\n",s6);
+		printf("s7:%8x\n",s7);
+		*/
 
-    t0 = s0 + s3;
-    t1 = s1 + s2;
-    t2 = s1 - s2;
-    t3 = s0 - s3;
-    t4 = s4 + s5;
-    t5 = s4 - s5;
-    t6 = s7 - s6;
-    t7 = s6 + s7;
+		t0 = s0 + s3;
+		t1 = s1 + s2;
+		t2 = s1 - s2;
+		t3 = s0 - s3;
+		t4 = s4 + s5;
+		t5 = s4 - s5;
+		t6 = s7 - s6;
+		t7 = s6 + s7;
 
-    /*
-    printf("t0:%8x\n",t0);
-    printf("t1:%8x\n",t1);
-    printf("t2:%8x\n",t2);
-    printf("t3:%8x\n",t3);
-    printf("t4:%8x\n",t4);
-    printf("t5:%8x\n",t5);
-    printf("t6:%8x\n",t6);
-    printf("t7:%8x\n",t7);
-    */
+		/*
+		printf("t0:%8x\n",t0);
+		printf("t1:%8x\n",t1);
+		printf("t2:%8x\n",t2);
+		printf("t3:%8x\n",t3);
+		printf("t4:%8x\n",t4);
+		printf("t5:%8x\n",t5);
+		printf("t6:%8x\n",t6);
+		printf("t7:%8x\n",t7);
+		*/
 
-    s5 = (t6 - t5) * 181 / 256; // 1/sqrt(2)
-    s6 = (t5 + t6) * 181 / 256; // 1/sqrt(2)
+		s5 = (t6 - t5) * 181 / 256; // 1/sqrt(2)
+		s6 = (t5 + t6) * 181 / 256; // 1/sqrt(2)
 
-    /*
-    printf("s5:%8x\n",s5);
-    printf("s6:%8x\n",s6);
-    */
+		/*
+		printf("s5:%8x\n",s5);
+		printf("s6:%8x\n",s6);
+		*/
 
-    BlockOut[ 0] = ((t0 + t7) >> 15);
-    BlockOut[56] = ((t0 - t7) >> 15);
-    BlockOut[ 8] = ((t1 + s6) >> 15);
-    BlockOut[48] = ((t1 - s6) >> 15);
-    BlockOut[16] = ((t2 + s5) >> 15);
-    BlockOut[40] = ((t2 - s5) >> 15);
-    BlockOut[24] = ((t3 + t4) >> 15);
-    BlockOut[32] = ((t3 - t4) >> 15);
-    
-    BlockIn++;
-    BlockOut++;
-  }
-  BlockOut-=8;
-  /*
-  printf("-----------------------------\n");
-  printf(" iDCT(Out)\n");
-  printf("-----------------------------\n");
-  for(i=0;i<8;i++){
-    printf(" %2d: %04x;\n",i+ 0,BlockOut[i+ 0]&0xFFFF);
-    printf(" %2d: %04x;\n",i+56,BlockOut[i+56]&0xFFFF);
-    printf(" %2d: %04x;\n",i+ 8,BlockOut[i+ 8]&0xFFFF);
-    printf(" %2d: %04x;\n",i+48,BlockOut[i+48]&0xFFFF);
-    printf(" %2d: %04x;\n",i+16,BlockOut[i+16]&0xFFFF);
-    printf(" %2d: %04x;\n",i+40,BlockOut[i+40]&0xFFFF);
-    printf(" %2d: %04x;\n",i+24,BlockOut[i+24]&0xFFFF);
-    printf(" %2d: %04x;\n",i+32,BlockOut[i+32]&0xFFFF);
-  }
-  */
+		BlockOut[ 0] = ((t0 + t7) >> 15);
+		BlockOut[56] = ((t0 - t7) >> 15);
+		BlockOut[ 8] = ((t1 + s6) >> 15);
+		BlockOut[48] = ((t1 - s6) >> 15);
+		BlockOut[16] = ((t2 + s5) >> 15);
+		BlockOut[40] = ((t2 - s5) >> 15);
+		BlockOut[24] = ((t3 + t4) >> 15);
+		BlockOut[32] = ((t3 - t4) >> 15);
+		
+		BlockIn++;
+		BlockOut++;
+	}
+	BlockOut-=8;
+	/*
+	printf("-----------------------------\n");
+	printf(" iDCT(Out)\n");
+	printf("-----------------------------\n");
+	for(i=0;i<8;i++){
+	printf(" %2d: %04x;\n",i+ 0,BlockOut[i+ 0]&0xFFFF);
+	printf(" %2d: %04x;\n",i+56,BlockOut[i+56]&0xFFFF);
+	printf(" %2d: %04x;\n",i+ 8,BlockOut[i+ 8]&0xFFFF);
+	printf(" %2d: %04x;\n",i+48,BlockOut[i+48]&0xFFFF);
+	printf(" %2d: %04x;\n",i+16,BlockOut[i+16]&0xFFFF);
+	printf(" %2d: %04x;\n",i+40,BlockOut[i+40]&0xFFFF);
+	printf(" %2d: %04x;\n",i+24,BlockOut[i+24]&0xFFFF);
+	printf(" %2d: %04x;\n",i+32,BlockOut[i+32]&0xFFFF);
+	}
+	*/
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 4:1:1‚ÌƒfƒR[ƒhˆ—
+// 4:1:1ã®ãƒ‡ã‚³ãƒ¼ãƒ‰å‡¦ç†
 void Decode411(unsigned char *buff, int *BlockY, int *BlockCb, int *BlockCr){
-  int BlockHuffman[64];
-  int BlockYLT[64];
-  int BlockYRT[64];
-  int BlockYLB[64];
-  int BlockYRB[64];
-  unsigned int i;
+	int BlockHuffman[64];
+	int BlockYLT[64];
+	int BlockYRT[64];
+	int BlockYLB[64];
+	int BlockYRB[64];
+	int Block[64];
+	unsigned int i;
+	unsigned int m, n;
 
-  // ‹P“x(¶ã)
-  printf("Block:00\n");
-  HuffmanDecode(buff,0x00,BlockHuffman);
-  DctDecode(BlockHuffman,BlockYLT);
-  // ‹P“x(‰Eã)
-  printf("Block:01\n");
-  HuffmanDecode(buff,0x00,BlockHuffman);
-  DctDecode(BlockHuffman,BlockYRT);
-  // ‹P“x(¶‰º)
-  printf("Block:02\n");
-  HuffmanDecode(buff,0x00,BlockHuffman);
-  DctDecode(BlockHuffman,BlockYLB);
-  // ‹P“x(‰E‰º)
-  printf("Block:03\n");
-  HuffmanDecode(buff,0x00,BlockHuffman);
-  DctDecode(BlockHuffman,BlockYRB);
-  // ÂF·
-  printf("Block:10\n");
-  HuffmanDecode(buff,0x01,BlockHuffman);
-  DctDecode(BlockHuffman,BlockCb);
-  // ÔF·
-  printf("Block:11\n");
-  HuffmanDecode(buff,0x02,BlockHuffman);
-  DctDecode(BlockHuffman,BlockCr);
-  
-  // ƒuƒƒbƒNƒTƒCƒY‚ğ16x16‚É‚·‚é
-  for(i=0;i<64;i++){
-    BlockY[(int)(i/8) *16 +(i % 8)] = BlockYLT[i];
-    BlockY[(int)(i/8) *16 +(i % 8)+8] = BlockYRT[i];
-    BlockY[(int)(i/8) *16 +(i % 8)+128] = BlockYLB[i];
-    BlockY[(int)(i/8) *16 +(i % 8)+128+8] = BlockYRB[i];
-  }
+	for(n=0;n<CompSampleY;n++){
+		for(m=0;m<CompSampleX;m++){
+			printf("BlockY:%d,%d\n",m,n);
+			HuffmanDecode(buff,0x00,BlockHuffman);
+			DctDecode(BlockHuffman,Block);
+			for(i=0;i<64;i++){
+				BlockY[(int)(i/8)*8*CompSampleX+(i%8)+(m*8)+(n*64*CompSampleY)] = Block[i];
+			}
+		}
+	}
+
+	if(CompCount > 1){
+		// é’è‰²å·®
+		printf("Block:10\n");
+		HuffmanDecode(buff,0x01,BlockHuffman);
+		DctDecode(BlockHuffman,BlockCb);
+
+		// èµ¤è‰²å·®
+		printf("Block:11\n");
+		HuffmanDecode(buff,0x02,BlockHuffman);
+		DctDecode(BlockHuffman,BlockCr);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// YUV¨RGB‚É•ÏŠ·
+// YUVâ†’RGBã«å¤‰æ›
 void DecodeYUV(int *y, int *cb, int *cr, unsigned char *rgb){
-  int r,g,b;
-  int p,i;
+	int r,g,b;
+	int p,i;
 
-  printf("----RGB----\n");
-  for(i=0;i<256;i++){
-    p = ((int)(i/32) * 8) + ((int)((i % 16)/2));
-    r = 128 + y[i] + cr[p]*1.402;
-    r = (r & 0xffffff00) ? (r >> 24) ^ 0xff : r;
-    g = 128 + y[i] - cb[p]*0.34414 - cr[p]*0.71414;
-    g = (g & 0xffffff00) ? (g >> 24) ^ 0xff : g;
-    b = 128 + y[i] + cb[p]*1.772;
-    b = (b & 0xffffff00) ? (b >> 24) ^ 0xff : b;
-    rgb[i*3+0] = b;
-    rgb[i*3+1] = g;
-    rgb[i*3+2] = r;
-    /*    
-    printf("[RGB]%3d: %3x,%3x,%3x = %2x,%2x,%2x\n",i,
-           y[i]&0x1FF,cr[p]&0x1FF,cb[p]&0x1FF,
-           rgb[i*3+2],rgb[i*3+1],rgb[i*3+0]);
-    */
-  }
+	printf("----RGB----\n");
+	for(i=0;i<((CompCount>1)?256:64);i++){
+		p = ((int)(i/32) * 8) + ((int)((i % 16)/2));
+		r = 128 + y[i] + ((CompCount>1)?cr[p]*1.402:0);
+		r = (r & 0xffffff00) ? (r >> 24) ^ 0xff : r;
+		g = 128 + y[i] - ((CompCount>1)?cb[p]*0.34414:0) - ((CompCount>1)?cr[p]*0.71414:0);
+		g = (g & 0xffffff00) ? (g >> 24) ^ 0xff : g;
+		b = 128 + y[i] + ((CompCount>1)?cb[p]*1.772:0);
+		b = (b & 0xffffff00) ? (b >> 24) ^ 0xff : b;
+		rgb[i*3+0] = b;
+		rgb[i*3+1] = g;
+		rgb[i*3+2] = r;
+	/*	
+	printf("[RGB]%3d: %3x,%3x,%3x = %2x,%2x,%2x\n",i,
+			y[i]&0x1FF,cr[p]&0x1FF,cb[p]&0x1FF,
+			rgb[i*3+2],rgb[i*3+1],rgb[i*3+0]);
+	*/
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ƒCƒ[ƒW‚ÌƒfƒR[ƒh
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã®ãƒ‡ã‚³ãƒ¼ãƒ‰
 void Decode(unsigned char *buff,unsigned char *rgb){
-  int BlockY[256];
-  int BlockCb[256];
-  int BlockCr[256];
-  int x,y,i,p;
+	int BlockY[256];
+	int BlockCb[256];
+	int BlockCr[256];
+	int x,y,i,p;
 
-  for(y=0;y<BuffBlockY;y++){
-    for(x=0;x<BuffBlockX;x++){
-      Decode411(buff,BlockY,BlockCb,BlockCr); // 4:1:1‚ÌƒfƒR[ƒh
-      DecodeYUV(BlockY,BlockCb,BlockCr,rgb);  // YUV¨RGB•ÏŠ·
-      for(i=0;i<256;i++){
-        if((x*16+(i%16)<BuffX) && (y*16+i/16<BuffY)){
-          p=y*16*BuffX*3+x*16*3+(int)(i/16)*BuffX*3+(i%16)*3;
-          Buff[p+0] = rgb[i*3+0];
-          Buff[p+1] = rgb[i*3+1];
-          Buff[p+2] = rgb[i*3+2];
-          
-          printf("RGB[%4d,%4d]: %2x,%2x,%2x\n",x*16+(i%16),y*16+i/16,
-                 rgb[i*3+2],rgb[i*3+1],rgb[i*3+0]);
-              
-        }
-      }
-    }
-  }
+	for(y=0;y<BuffBlockY;y++){
+		for(x=0;x<BuffBlockX;x++){
+			Decode411(buff,BlockY,BlockCb,BlockCr);	// 4:1:1ã®ãƒ‡ã‚³ãƒ¼ãƒ‰
+			DecodeYUV(BlockY,BlockCb,BlockCr,rgb);		// YUVâ†’RGBå¤‰æ›
+			for(i=0;i<((CompCount>1)?256:64);i++){
+				if((x*(8*CompSampleX)+(i%(8*CompSampleX))<BuffX) && (y*(8*CompSampleY)+i/(8*CompSampleY)<BuffY)){
+					p=y*(8*CompSampleY)*BuffX*3+x*(8*CompSampleX)*3+(int)(i/(8*CompSampleY))*BuffX*3+(i%(8*CompSampleX))*3;
+					Buff[p+0] = rgb[i*3+0];
+					Buff[p+1] = rgb[i*3+1];
+					Buff[p+2] = rgb[i*3+2];
+			
+					printf("RGB[%4d,%4d]: %2x,%2x,%2x\n",x*(8*CompSampleX)+(i%(8*CompSampleX)),y*(8*CompSampleY)+i/(8*CompSampleY),rgb[i*3+2],rgb[i*3+1],rgb[i*3+0]);
+				}
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ƒfƒR[ƒh
+// ãƒ‡ã‚³ãƒ¼ãƒ‰
 void JpegDecode(unsigned char *buff){
-  unsigned short data;
-  unsigned int i;
-  unsigned int Image =0;
-  unsigned char RGB[256*3];
-  while(!(BuffIndex >= BuffSize)){
-    if(Image ==0){
-      data = get_word(buff);
-      switch(data){
-      case 0xFFD8: // SOI
-		printf("Header: SOI\n");
-        break;
-      case 0xFFE0: // APP0
-		printf("Header: APP0\n");
-        GetAPP0(buff);
-        break;
-      case 0xFFDB: // DQT
-		printf("Header: DQT\n");
-        GetDQT(buff);
-        break;
-      case 0xFFC4: // DHT
-		printf("Header: DHT\n");
-        GetDHT(buff);
-        break;
-      case 0xFFC0: // SOF
-		printf("Header: SOF\n");
-        GetSOF(buff);
-        break;
-      case 0xFFDA: // SOS
-		printf("Header: SOS\n");
-        GetSOS(buff);
-        Image = 1;
-        // ƒf[ƒ^‚Ì€”õ
-        PreData[0] = 0x00;
-        PreData[1] = 0x00;
-        PreData[2] = 0x00;
-        LineData = get_data(buff);
-        NextData = get_data(buff);
-        BitCount =0;
-        break;
-      case 0xFFD9: // EOI
-		printf("Header: EOI\n");
-        break;
-      default:
-        // ”»•Ê‚Å‚«‚È‚¢ƒwƒbƒ_[‚Í“Ç‚İ”ò‚Î‚·
-		printf("Header: other(%X)\n", data);
-        if((data & 0xFF00) == 0xFF00 && !(data == 0xFF00)){
-          data = get_word(buff);
-          for(i=0;i<data-2;i++){
-            get_byte(buff);
-          }
-        }
-        break;
-      }
-    }else{
-      // L’·(SOS‚ª—ˆ‚Ä‚¢‚é)
-      printf("/****Image****/\n");
-      Decode(buff,RGB);
-    }
-  }
+	unsigned short data;
+	unsigned int i;
+	unsigned int Image =0;
+	unsigned char RGB[256*3];
+	while(!(BuffIndex >= BuffSize)){
+		if(Image ==0){
+			data = get_word(buff);
+			switch(data){
+				case 0xFFD8: // SOI
+				printf("Header: SOI\n");
+				break;
+			case 0xFFE0: // APP0
+				printf("Header: APP0\n");
+				GetAPP0(buff);
+				break;
+			case 0xFFDB: // DQT
+				printf("Header: DQT\n");
+				GetDQT(buff);
+				break;
+			case 0xFFC4: // DHT
+				printf("Header: DHT\n");
+				GetDHT(buff);
+				break;
+			case 0xFFC0: // SOF
+				printf("Header: SOF\n");
+				GetSOF(buff);
+				break;
+			case 0xFFDA: // SOS
+				printf("Header: SOS\n");
+				GetSOS(buff);
+				Image = 1;
+				// ãƒ‡ãƒ¼ã‚¿ã®æº–å‚™
+				PreData[0] = 0x00;
+				PreData[1] = 0x00;
+				PreData[2] = 0x00;
+				LineData = get_data(buff);
+				NextData = get_data(buff);
+				BitCount =0;
+				break;
+			case 0xFFD9: // EOI
+				printf("Header: EOI\n");
+				break;
+			default:
+				// åˆ¤åˆ¥ã§ããªã„ãƒ˜ãƒƒãƒ€ãƒ¼ã¯èª­ã¿é£›ã°ã™
+				printf("Header: other(%X)\n", data);
+				if((data & 0xFF00) == 0xFF00 && !(data == 0xFF00)){
+					data = get_word(buff);
+					for(i=0;i<data-2;i++){
+					get_byte(buff);
+					}
+				}
+				break;
+			}
+		}else{
+			// ä¼¸é•·(SOSãŒæ¥ã¦ã„ã‚‹)
+			printf("/****Image****/\n");
+			Decode(buff,RGB);
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ƒƒCƒ“ŠÖ”
+// ãƒ¡ã‚¤ãƒ³é–¢æ•°
 //////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-  unsigned char *buff;
-  FILE *fp;
+	unsigned char *buff;
+	FILE *fp;
 
-//
-printf( " sizeof(char):           %02d\n", sizeof( char ) );
-printf( " sizeof(unsigned char):  %02d\n", sizeof( unsigned char ) );
-printf( " sizeof(short):          %02d\n", sizeof( short ) );
-printf( " sizeof(unsigned short): %02d\n", sizeof( unsigned short ) );
-printf( " sizeof(int):            %02d\n", sizeof( int ) );
-printf( " sizeof(unsigned int):   %02d\n", sizeof( unsigned int ) );
-printf( " sizeof(long):           %02d\n", sizeof( long ) );
-printf( " sizeof(unsigned long):  %02d\n", sizeof( unsigned long ) );
+	// å‹ã®ã‚µã‚¤ã‚ºã‚’è¡¨ç¤ºã™ã‚‹
+	printf( " sizeof(char):           %02d\n", sizeof( char ) );
+	printf( " sizeof(unsigned char):  %02d\n", sizeof( unsigned char ) );
+	printf( " sizeof(short):          %02d\n", sizeof( short ) );
+	printf( " sizeof(unsigned short): %02d\n", sizeof( unsigned short ) );
+	printf( " sizeof(int):            %02d\n", sizeof( int ) );
+	printf( " sizeof(unsigned int):   %02d\n", sizeof( unsigned int ) );
+	printf( " sizeof(long):           %02d\n", sizeof( long ) );
+	printf( " sizeof(unsigned long):  %02d\n", sizeof( unsigned long ) );
 
-printf( " sizeof:                 %02d\n", sizeof( BITMAPFILEHEADER ) );
-printf( " sizeof:                 %02d\n", sizeof( BITMAPINFOHEADER ) );
+	printf( " sizeof:                 %02d\n", sizeof( BITMAPFILEHEADER ) );
+	printf( " sizeof:                 %02d\n", sizeof( BITMAPINFOHEADER ) );
 
-  if((fp = fopen(argv[1],"rb")) == NULL){
-    perror(0);
-    exit(0);
-  }
+	if((fp = fopen(argv[1], "rb")) == NULL){
+		perror(0);
+		exit(0);
+	}
 
-  // ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğæ“¾‚·‚é
-  BuffSize = 0;
-  while(!feof(fp)){
-    fgetc(fp);
-    BuffSize ++;
-  }
-  BuffSize--;
-  rewind(fp); // ƒtƒ@ƒCƒ‹ƒ|ƒCƒ“ƒ^‚ğÅ‰‚É–ß‚·
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
+	BuffSize = 0;
+	while(!feof(fp)){
+		fgetc(fp);
+		BuffSize ++;
+	}
+	BuffSize--;
+	rewind(fp);	// ãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚¤ãƒ³ã‚¿ã‚’æœ€åˆã«æˆ»ã™
 
-  buff = (unsigned char *)malloc(BuffSize); // ƒoƒbƒtƒ@‚ğŠm•Û‚·‚é
-  fread(buff,1,BuffSize,fp);                // ƒoƒbƒtƒ@‚É“Ç‚İ‚Ş
-  BuffIndex = 0;
-  JpegDecode(buff);                         // JPEGƒfƒR[ƒh‚·‚é
-  BmpSave(argv[2],Buff,BuffX,BuffY,3);      // Bitmap‚É•Û‘¶‚·‚é
+	buff = (unsigned char *)malloc(BuffSize);	// ãƒãƒƒãƒ•ã‚¡ã‚’ç¢ºä¿ã™ã‚‹
+	fread(buff,1,BuffSize,fp);					// ãƒãƒƒãƒ•ã‚¡ã«èª­ã¿è¾¼ã‚€
+	BuffIndex = 0;
+	JpegDecode(buff);								// JPEGãƒ‡ã‚³ãƒ¼ãƒ‰ã™ã‚‹
+	printf("Finished decode\n");
+	BmpSave(argv[2],Buff,BuffX,BuffY,3);			// Bitmapã«ä¿å­˜ã™ã‚‹
+	printf("Saved BMP\n");
 
-  // ‘S‚ÄŠJ•ú‚µ‚Ü‚·
-  fclose(fp);
-  free(buff);
-  free(Buff);
+	// å…¨ã¦é–‹æ”¾ã—ã¾ã™
+	fclose(fp);
+	free(buff);
+	free(Buff);
 
-  return 0;
+	return 0;
 }
