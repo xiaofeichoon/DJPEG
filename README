@@ -1,21 +1,27 @@
-AQ_DJPEG
+AQUAXIS DECODE JPEG
 
-●シミュレーション
+■
+src/hdl   Verilogソースコード
+src/sim   テストベンチ・ソースコード
+src/model Cモデル
+sim       シミュレーション
+conf      コンフィグ
+sample    サンプルデータ
+
+■動作環境
+Fedora 19(64bit)
+Xilinx ISE 14.6
+
+■シミュレーション
+シミュレーション方法は下記の手順で実行します。
+
 % cd ./sim
-% cp ../testdata/test.mem .
-% ../script/tb_aq_djprg.bat
 
 シミュレーション用元画像データの作成方法
-% ./convbtoh test.img test.mem
+% ../src/model/convbtoh test.img test.mem
+
+% cp ../sample/test.mem .
+% ./sim_isim.sh
 
 シミュレーション後のデコードデータの復元方法
-% ./convsim sim.dat sim.bmp
-
-●インプリメント
-% cd ./imp
-% ../script/compile.bat
-
-動作確認環境
- - Windows 7(64bit)
- - Xilinx ISE 13.1
- - MinGW
+% ../src/model/convsim sim.dat sim.bmp
